@@ -39,13 +39,13 @@ getmaxopen(void) {
 
     if (maxopen == 0) {
 	errno = 0;
+	// try sysconf
 	if ((maxopen = sysconf(_SC_OPEN_MAX)) < 0) {
-	    if (errno != 0)
+	    if (errno != 0) // TODO: don't depend on evaluation order?
 		perror("_SC_OPEN_MAX");
-	    maxopen = LONG_MAX;
 	}
-	// LONG_MAX is too big -> try getrlimit
-	if (maxopen == LONG_MAX) {
+	// try getrlimit
+	if ((maxopen == LONG_MAX) || (maxopen < 0)) {
 	    if (getrlimit(RLIMIT_NOFILE, &limit) == -1) {
 		perror("RLIMIT_NOFILE");
 		maxopen = _MAX_OPEN_GUESS;
